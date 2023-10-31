@@ -1,0 +1,122 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+
+library(sqlitemeta)
+```
+
+# sqlitemeta
+
+<!-- badges: start -->
+![](https://img.shields.io/badge/cool-useless-green.svg)
+<!-- badges: end -->
+
+`{sqlitemeta}` is a tool for parsing SQLite `CREATE TABLE` statements.
+
+[SQLite](https://sqlite.org) stores and updates information about the columns
+it contains in a stored SQL statement as part of the database.
+
+This stored statement is an SQL `CREATE TABLE` operation describing how 
+you could the create the table in question.
+
+So if you want to learn about the structure of an existing database, 
+parsing this `CREATE TABLE` statement is a key part of understanding 
+how it was constructed.
+
+This package is wrapper around the C libary [sqlite-createtable-parser](https://github.com/marcobambini/sqlite-createtable-parser).
+
+
+## What's in the box
+
+* `parse_sql()` will parse a SQLite `CREATE TABLE` statement (provided as a single
+   character string) and return a named list of information.
+
+
+## Installation
+
+You can install from [GitHub](https://github.com/coolbutuseless/sqlitemeta) with:
+
+``` r
+# install.package('remotes')
+remotes::install_github('coolbutuseless/sqlitemeta')
+```
+
+
+
+## Example 1 - Parsing a provided `CREATE TABLE` statement
+
+
+```{r example}
+library(sqlitemeta)
+
+sql <- r"(
+CREATE TABLE contact_groups(                
+   contact_id INTEGER PRIMARY KEY,      
+   group_id INTEGER DEFAULT 999,
+   details VARCHAR(20),
+   PRIMARY KEY (contact_id, group_id),      
+   FOREIGN KEY (contact_id)                 
+      REFERENCES contacts (contact_id)      
+         ON DELETE CASCADE                  
+         ON UPDATE NO ACTION,               
+   FOREIGN KEY (group_id)                   
+      REFERENCES groups (group_id)          
+         ON DELETE CASCADE                  
+         ON UPDATE NO ACTION                
+) STRICT;
+)"
+
+parse_sql(sql)
+```
+
+
+
+## Example 2 - Extracting `CREATE TABLE` statement from existing SQLite database
+
+
+```{r}
+library(sqlitemeta)
+library(RSQLite)
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Create an in-memory SQLite database and add 'mtcars' data as a table
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+con <- dbConnect(RSQLite::SQLite(), ":memory:")
+dbWriteTable(con, "mtcars", mtcars, overwrite = TRUE)
+dbListTables(con)
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Query Sqlite for the 'CREATE TABLE' statement used to 
+# create the 'mtcars' table in the database.
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+qry <- "SELECT sql FROM sqlite_master WHERE name = 'mtcars';"
+res <- dbSendQuery(con, qry)
+res <- dbFetch(res)
+create_table_sql <- res$sql[[1]] 
+
+cat(create_table_sql, sep = "\n")
+
+parse_sql(create_table_sql)
+```
+
+
+
+## Related Software
+
+* [RSQLite](https://cran.dev/RSQLite)
+
+## Acknowledgements
+
+* R Core for developing and maintaining the language.
+* CRAN maintainers, for patiently shepherding packages onto CRAN and maintaining
+  the repository

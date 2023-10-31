@@ -1,0 +1,14 @@
+Package: sqlitemeta
+Type: Package
+Title: Sqllite Table Parser
+Version: 0.1.0
+Authors@R: c(
+    person("Mike", "FC", role = c("aut", "cre"), email = "mikefc@coolbutuseless.com"),
+    person("Bambini", "Marco", role = "cph", 
+    comment="Author of bundled sqlite-createtable-parser"))
+Maintainer: mikefc <mikefc@coolbutuseless.com>
+Description: Sqlite table parser.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.2.3
